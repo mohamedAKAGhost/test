@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Membership Registration</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <img src="logo.png" alt="Logo">
+        <h2>Membership Registration</h2>
+
+        <form id="registrationForm" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="name" class="form-label">Enter Your Name</label>
+                <input type="text" class="form-control" placeholder="Enter your name" name="name" id="name" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="phone" class="form-label">Enter Your Phone Number</label>
+                <input type="tel" class="form-control" placeholder="Enter your phone number" name="phone" id="phone" required
+                    pattern="\+?[0-9]{9,15}">
+            </div>
+
+            <div class="mb-3">
+                <label for="frontImage" class="form-label">Upload Front of ID Card</label>
+                <input class="form-control" type="file" id="frontImage" name="frontImage" accept="image/jpeg, image/png"
+                    required>
+            </div>
+
+            <div class="mb-3">
+                <label for="backImage" class="form-label">Upload Back of ID Card</label>
+                <input class="form-control" type="file" id="backImage" name="backImage" accept="image/jpeg, image/png"
+                    required>
+            </div>
+
+            <div class="mb-3">
+                <label for="profileImage" class="form-label">Upload Profile Picture</label>
+                <input class="form-control" type="file" id="profileImage" name="profileImage"
+                    accept="image/jpeg, image/png" required>
+            </div>
+
+            <button class="btn btn-primary w-100" type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const frontImage = document.getElementById('frontImage').files[0];
+            const backImage = document.getElementById('backImage').files[0];
+            const profileImage = document.getElementById('profileImage').files[0];
+
+            if (!name || !phone || !frontImage || !backImage || !profileImage) {
+                alert('Please fill in all fields!');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+
+            // Set the font (you can embed custom Arabic font if needed)
+            doc.setFont("Arial", "normal"); // Default font, you can replace with a custom Arabic font
+            doc.setFontSize(16);
+
+            // Adding Name and Phone Number to the PDF
+            doc.text('Name: ' + name, 10, 20);  // Position at x=10, y=20
+            doc.text('Phone Number: ' + phone, 10, 30);  // Position at x=10, y=30
+
+            // Prepare image URLs
+            const frontImageUrl = URL.createObjectURL(frontImage);
+            const backImageUrl = URL.createObjectURL(backImage);
+            const profileImageUrl = URL.createObjectURL(profileImage);
+
+            // Function to load and add images
+            const loadImage = (imageUrl, callback) => {
+                const img = new Image();
+                img.onload = () => callback(img);
+                img.src = imageUrl;
+            };
+
+            // Add images after they are loaded
+            loadImage(frontImageUrl, (frontImg) => {
+                doc.addImage(frontImg, 'JPEG', 10, 40, 50, 40);  // Adding front image at coordinates (10, 40)
+                loadImage(backImageUrl, (backImg) => {
+                    doc.addImage(backImg, 'JPEG', 10, 90, 50, 40);  // Adding back image at coordinates (10, 90)
+                    loadImage(profileImageUrl, (profileImg) => {
+                        doc.addImage(profileImg, 'JPEG', 10, 140, 50, 40);  // Adding profile image at coordinates (10, 140)
+                        // Save the generated PDF with the user's name
+                        doc.save(name + '_registration.pdf');
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
